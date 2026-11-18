@@ -51,7 +51,25 @@ node scripts/check-markers.mjs   # draws all cameras on the 3D plans -> ../rande
   `src/data/spaces-ar.json`, then run `npm run images`.
 - A new or corrected 3D plan: replace `../rander shots/3d-plans/<code>_3dplan.png` and run `npm run images`.
 
+## 3D model
+
+The master plan and building pages open on a real-time 3D model of the resort (three.js), made from the
+3ds Max scene. Orbit, zoom and tap a building to open it; the building page flies the camera to it.
+"Aerial image" switches back to the image view.
+
+Rebuild the model after the scene changes:
+
+1. In 3ds Max with `RESORT_web.max` open, run `pipeline/max/web_export.ms` (Scripting > Run Script). It
+   skips V-Ray proxies, simplifies small props, converts V-Ray materials to Physical and exports
+   `web_export/resort.glb`. It changes the scene in memory only: reload the file afterwards without saving.
+2. `node scripts/optimize-model.mjs 0.07 0.012` (ratio, error) welds, simplifies, merges by material,
+   converts textures to WebP and Draco-compresses into `public/media/model/resort.glb` (about 14 MB).
+3. Clickable building volumes and the start camera are in `src/data/model.json` (3ds Max metres).
+
 ## Things that are approximate (to replace later)
+
+- The 3D model has no trees, cars or people (they are V-Ray proxies, which do not export) and uses
+  simplified real-time materials, so it looks lighter than the V-Ray renders.
 
 - Building outlines on the aerial (`poly` in `src/data/buildings.json`) are traced by hand on the existing
   render. Replace them with polygons from V-Ray masks once the master render exists.

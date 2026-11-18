@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react';
+import { Suspense, lazy, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DeepZoom from '../components/DeepZoom';
 import UnitList from '../components/UnitList';
 import { areaRange, buildings, formatPrice, media, priceRange, shotsForBuilding, unitsDemo, units, unitsForBuilding, type Unit } from '../lib/data';
 import { useI18n } from '../lib/i18n';
 import { withPanel } from '../lib/layout';
+
+// three.js + the model load only when the 3D view is shown
+const ModelView = lazy(() => import('../components/ModelView'));
 
 type Tab = 'buildings' | 'find';
 type Mode = 'type' | 'avail';
@@ -27,6 +30,7 @@ export default function MasterPlan() {
   const [view, setView] = useState('');
   const [maxPrice, setMaxPrice] = useState(priceRange[1]);
   const [minArea, setMinArea] = useState(areaRange[0]);
+  const [view3d, setView3d] = useState(true);
   const open = (id: string) => nav(`/master-plan/building/${id}`);
   const fit = withPanel({ x: 0, y: 0, w: media.master.w, h: media.master.h }, lang === 'ar' ? 'rtl' : 'ltr');
 
@@ -35,8 +39,24 @@ export default function MasterPlan() {
     u.price <= maxPrice && u.area_m2 >= minArea), [type, status, view, maxPrice, minArea]);
   const hits = new Set(results.map((u) => u.building));
 
+  const colors = Object.fromEntries(buildings.map((b) => [b.id, mode === 'avail' ? availColor(unitsForBuilding(b.id)) : b.color]));
+  const labels = Object.fromEntries(buildings.map((b) => {
+    const list = unitsForBuilding(b.id);
+    const free = list.filter((u) => u.status === 'available').length;
+    return [b.id, mode === 'avail' && list.length ? `${b.id} · ${free}/${list.length}` : tx(b.name)];
+  }));
+
   return (
     <div className="stage">
+      <div className="view-switch" role="tablist">
+        <button role="tab" aria-selected={view3d} className={view3d ? 'on' : ''} onClick={() => setView3d(true)}>{t('model3d')}</button>
+        <button role="tab" aria-selected={!view3d} className={!view3d ? 'on' : ''} onClick={() => setView3d(false)}>{t('aerialView')}</button>
+      </div>
+      {view3d ? (
+        <Suspense fallback={<div className="loading" />}>
+          <ModelView colors={colors} labels={labels} onPick={open} />
+        </Suspense>
+      ) : (
       <DeepZoom dzi="/media/master/aerial.dzi" width={media.master.w} height={media.master.h} fit={fit}>
         {buildings.map((b) => {
           const list = unitsForBuilding(b.id);
@@ -56,6 +76,7 @@ export default function MasterPlan() {
           );
         })}
       </DeepZoom>
+      )}
 
       <div className="mode-switch" role="tablist">
         <button role="tab" aria-selected={mode === 'type'} className={mode === 'type' ? 'on' : ''} onClick={() => setMode('type')}>{t('byType')}</button>
@@ -70,7 +91,7 @@ export default function MasterPlan() {
 
         {tab === 'buildings' ? (
           <>
-            <p className="muted small">{t('hint')}</p>
+            <p className="muted small">{view3d ? t('hint3d') : t('hint')}</p>
             <ul className="bld-list">
               {buildings.map((b) => {
                 const list = unitsForBuilding(b.id);

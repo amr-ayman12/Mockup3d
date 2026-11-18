@@ -1,0 +1,12 @@
+{
+  "_comment": "3D model settings. Coordinates are 3ds Max metres (x east, y north, z up); the viewer converts them (three.js X = x, Y = z, Z = -y). 'boxes' are the clickable building volumes: centre, size (w along x, d along y), height and rotation (degrees, counter-clockwise seen from above).",
+  "url": "/media/model/resort.glb",
+  "camera": { "position": [80, -78, 98], "target": [80, 44, 0] },
+  "boxes": {
+    "B1": { "c": [57, 66], "w": 25, "d": 13, "h": 8.5, "rot": -8 },
+    "B2": { "c": [50, 46], "w": 38, "d": 30, "h": 11.5, "rot": 0 },
+    "B3": { "c": [47, 25], "w": 36, "d": 17, "h": 11.5, "rot": -22 },
+    "B4": { "c": [100, 50], "w": 40, "d": 36, "h": 11.5, "rot": 35 },
+    "B5": { "c": [113, 24], "w": 30, "d": 16, "h": 8.5, "rot": 0 }
+  }
+}

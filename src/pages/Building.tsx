@@ -1,4 +1,5 @@
-import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { Suspense, lazy, useState } from 'react';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import DeepZoom from '../components/DeepZoom';
 import { floorLabel } from '../components/TopBar';
 import UnitList from '../components/UnitList';
@@ -6,11 +7,15 @@ import { buildings, getBuilding, media, polyBounds, shotsForBuilding, shotsForPl
 import { useI18n } from '../lib/i18n';
 import { withPanel } from '../lib/layout';
 
+const ModelView = lazy(() => import('../components/ModelView'));
+
 export default function Building() {
   const { id } = useParams();
   const b = getBuilding(id);
   const { lang, t, tx } = useI18n();
   const [params, setParams] = useSearchParams();
+  const nav = useNavigate();
+  const [view3d, setView3d] = useState(true);
   if (!b) return <Navigate to="/master-plan" replace />;
 
   const bUnits = unitsForBuilding(b.id);
@@ -19,15 +24,28 @@ export default function Building() {
   const fit = withPanel({ x: bb.x - pad, y: bb.y - pad * 0.7, w: bb.w + pad * 2, h: bb.h + pad * 1.4 }, lang === 'ar' ? 'rtl' : 'ltr');
   const openShot = (sid: string) => { const p = new URLSearchParams(params); p.set('shot', sid); setParams(p); };
 
+  const colors = Object.fromEntries(buildings.map((x) => [x.id, x.color]));
+  const labels = Object.fromEntries(buildings.map((x) => [x.id, x.id === b.id ? tx(x.name) : x.id]));
+
   return (
     <div className="stage">
-      <DeepZoom dzi="/media/master/aerial.dzi" width={media.master.w} height={media.master.h} fit={fit}>
-        {buildings.map((x) => (
-          <g key={x.id} className={`bld ${x.id === b.id ? 'selected' : 'dim'}`} style={{ ['--c' as string]: x.color }}>
-            <polygon points={x.poly.map((p) => p.join(',')).join(' ')} />
-          </g>
-        ))}
-      </DeepZoom>
+      <div className="view-switch" role="tablist">
+        <button role="tab" aria-selected={view3d} className={view3d ? 'on' : ''} onClick={() => setView3d(true)}>{t('model3d')}</button>
+        <button role="tab" aria-selected={!view3d} className={!view3d ? 'on' : ''} onClick={() => setView3d(false)}>{t('aerialView')}</button>
+      </div>
+      {view3d ? (
+        <Suspense fallback={<div className="loading" />}>
+          <ModelView colors={colors} labels={labels} focus={b.id} dimOthers onPick={(x) => nav(`/master-plan/building/${x}`)} />
+        </Suspense>
+      ) : (
+        <DeepZoom dzi="/media/master/aerial.dzi" width={media.master.w} height={media.master.h} fit={fit}>
+          {buildings.map((x) => (
+            <g key={x.id} className={`bld ${x.id === b.id ? 'selected' : 'dim'}`} style={{ ['--c' as string]: x.color }}>
+              <polygon points={x.poly.map((p) => p.join(',')).join(' ')} />
+            </g>
+          ))}
+        </DeepZoom>
+      )}
 
       <aside className="panel">
         <h1>{tx(b.name)}</h1>

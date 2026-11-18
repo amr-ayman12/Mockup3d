@@ -63,6 +63,10 @@ const STRINGS = {
   m2: { en: 'm²', ar: 'م²' },
   aed: { en: 'AED', ar: 'درهم' },
   availableOf: { en: 'available', ar: 'متاحة' },
+  loading3d: { en: 'Loading the 3D model…', ar: 'بيحمّل المجسم الـ 3D…' },
+  model3d: { en: '3D model', ar: 'مجسم 3D' },
+  aerialView: { en: 'Aerial image', ar: 'صورة جوية' },
+  hint3d: { en: 'Drag to orbit, pinch or scroll to zoom, tap a building to open it', ar: 'اسحب عشان تلف، قرّب بالصباعين أو العجلة، واضغط على مبنى عشان تفتحه' },
 } satisfies Record<string, Text>;
 
 type Key = keyof typeof STRINGS;
