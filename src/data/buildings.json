@@ -1,0 +1,58 @@
+{
+  "_comment": "Buildings and floors. 'poly' is the outline on the master-plan aerial (pixels of media/master/aerial, 1526x1030), traced by hand: replace with mask-derived polygons once the V-Ray master render exists. 'cropBox' is the building's extent inside the 2D plan crop (fractions x0,y0,x1,y1); it maps camera markers onto the 3D plan.",
+  "buildings": [
+    {
+      "id": "B1", "color": "#c98b4b",
+      "name": { "en": "B1 · Administration", "ar": "B1 · الإدارة" },
+      "poly": [[447,243],[652,250],[650,308],[712,312],[690,350],[447,345]],
+      "label": [548, 296],
+      "floors": [
+        { "id": "G", "plan": "B1-G", "cropBox": [0.05, 0.0, 0.94, 0.93], "use": { "en": "Offices, meeting rooms, records", "ar": "مكاتب وغرف اجتماعات وأرشيف" } },
+        { "id": "1", "plan": "B1-1", "cropBox": [0.05, 0.06, 0.95, 0.95], "use": { "en": "4 guest rooms", "ar": "4 غرف ضيوف" } }
+      ]
+    },
+    {
+      "id": "B2", "color": "#2f7f86",
+      "name": { "en": "B2 · Gym & Guest Rooms", "ar": "B2 · الجيم وغرف الضيوف" },
+      "poly": [[298,340],[652,346],[648,432],[402,432],[380,566],[224,564]],
+      "label": [430, 390],
+      "floors": [
+        { "id": "G", "plan": "B2-G", "cropBox": [0.03, 0.08, 0.97, 0.93], "use": { "en": "Gym", "ar": "الجيم" } },
+        { "id": "1", "plan": "B2-1", "cropBox": [0.03, 0.03, 0.97, 1.0], "use": { "en": "Guest rooms + terrace lounge", "ar": "غرف ضيوف وتراس" } },
+        { "id": "2", "plan": null, "use": { "en": "Plan pending (not distinct in the CAD)", "ar": "البلان ناقص (مش واضح في الكاد)" } }
+      ]
+    },
+    {
+      "id": "B3", "color": "#5f8f5a",
+      "name": { "en": "B3 · Spa & Guest Rooms", "ar": "B3 · السبا وغرف الضيوف" },
+      "poly": [[160,600],[225,567],[380,570],[590,612],[520,800],[390,830],[215,760],[155,690]],
+      "label": [370, 690],
+      "floors": [
+        { "id": "G", "plan": "B3-G", "cropBox": [0.04, 0.04, 0.95, 1.0], "use": { "en": "Spa: three treatment rooms", "ar": "السبا: 3 غرف علاج" } },
+        { "id": "1", "plan": "B3-1", "cropBox": [0.03, 0.0, 0.95, 0.98], "use": { "en": "12 guest rooms", "ar": "12 غرفة ضيوف" } },
+        { "id": "2", "plan": "B3-2", "cropBox": [0.05, 0.02, 0.96, 0.95], "use": { "en": "Guest rooms + terrace lounge", "ar": "غرف ضيوف وتراس" } }
+      ]
+    },
+    {
+      "id": "B4", "color": "#9a6a3f",
+      "name": { "en": "B4 · Lobby & Guest Rooms", "ar": "B4 · اللوبي وغرف الضيوف" },
+      "poly": [[882,385],[1025,275],[1095,330],[1240,405],[1175,510],[1075,585],[1000,520],[905,445]],
+      "label": [1060, 420],
+      "floors": [
+        { "id": "G", "plan": "B4-Gw", "cropBox": [0.0, 0.0, 0.86, 0.98], "use": { "en": "Registration, wellness rooms, lobby wing", "ar": "التسجيل وغرف العلاج وجناح اللوبي" } },
+        { "id": "1", "plan": "B4-1", "cropBox": [0.05, 0.05, 0.86, 0.97], "use": { "en": "Guest rooms", "ar": "غرف ضيوف" } },
+        { "id": "2", "plan": "B4-2", "cropBox": [0.05, 0.04, 0.93, 0.97], "use": { "en": "Guest rooms + terrace lounge", "ar": "غرف ضيوف وتراس" } }
+      ]
+    },
+    {
+      "id": "B5", "color": "#b5654a",
+      "name": { "en": "B5 · Restaurant & Guest Rooms", "ar": "B5 · المطعم وغرف الضيوف" },
+      "poly": [[1080,580],[1180,510],[1320,560],[1430,600],[1500,760],[1250,765],[1140,690]],
+      "label": [1300, 650],
+      "floors": [
+        { "id": "G", "plan": "B5-G", "cropBox": [0.03, 0.04, 0.97, 0.95], "use": { "en": "Restaurant, jacuzzi rooms, timber deck", "ar": "المطعم وغرف الجاكوزي والديك الخشب" } },
+        { "id": "1", "plan": "B5-1", "cropBox": [0.03, 0.08, 0.97, 0.98], "use": { "en": "3 guest rooms", "ar": "3 غرف ضيوف" } }
+      ]
+    }
+  ]
+}
