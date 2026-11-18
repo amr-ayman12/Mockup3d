@@ -63,5 +63,7 @@ node scripts/check-markers.mjs   # draws all cameras on the 3D plans -> ../rande
 
 ## Deploy
 
-`vercel.json` is included (single-page rewrites + caching). Deploy the `website` folder on Vercel
-(framework: Vite, build `npm run build`, output `dist`). Ask before publishing.
+- Live: https://mockup3d-chi.vercel.app (Vercel project `mockup3d`, connected to
+  https://github.com/amr-ayman12/Mockup3d). Every push to `main` deploys automatically.
+- `vercel.json` handles the single-page rewrites (deep links) and caching.
+- Manual deploy from this folder: `vercel deploy --prod` (Vercel CLI).
