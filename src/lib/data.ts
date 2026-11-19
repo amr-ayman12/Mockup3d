@@ -75,7 +75,13 @@ export const unitsForBuilding = (id: string) => units.filter((u) => u.building =
 export const STATUS_COLOR: Record<Status, string> = { available: '#2e8b57', reserved: '#d39a2c', sold: '#b4483d' };
 export const priceRange = [Math.min(...units.map((u) => u.price)), Math.max(...units.map((u) => u.price))];
 export const areaRange = [Math.min(...units.map((u) => u.area_m2)), Math.max(...units.map((u) => u.area_m2))];
-export const formatPrice = (n: number, lang: Lang) =>
+/** colour for a group of units: share still available (green / amber / red), grey when there are none */
+export function availColor(list: Unit[]) {
+  if (!list.length) return '#9aa3a0';
+  const r = list.filter((u) => u.status === 'available').length / list.length;
+  return r >= 0.6 ? '#2e8b57' : r >= 0.3 ? '#d39a2c' : '#b4483d';
+}
+export const formatPrice =(n: number, lang: Lang) =>
   new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en-US', { maximumFractionDigits: 0 }).format(n);
 
 /** WhatsApp link with a pre-filled message, or null while the number is a placeholder. */

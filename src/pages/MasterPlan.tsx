@@ -2,7 +2,7 @@ import { Suspense, lazy, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DeepZoom from '../components/DeepZoom';
 import UnitList from '../components/UnitList';
-import { areaRange, buildings, formatPrice, media, priceRange, shotsForBuilding, unitsDemo, units, unitsForBuilding, type Unit } from '../lib/data';
+import { areaRange, availColor, buildings, formatPrice, media, priceRange, shotsForBuilding, unitsDemo, units, unitsForBuilding } from '../lib/data';
 import { useI18n } from '../lib/i18n';
 import { withPanel } from '../lib/layout';
 
@@ -12,12 +12,6 @@ const ModelView = lazy(() => import('../components/ModelView'));
 type Tab = 'buildings' | 'find';
 type Mode = 'type' | 'avail';
 
-/** colour for a building in availability mode: share of its units still available */
-function availColor(list: Unit[]) {
-  if (!list.length) return '#9aa3a0';
-  const r = list.filter((u) => u.status === 'available').length / list.length;
-  return r >= 0.6 ? '#2e8b57' : r >= 0.3 ? '#d39a2c' : '#b4483d';
-}
 
 export default function MasterPlan() {
   const { lang, t, tx } = useI18n();

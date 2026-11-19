@@ -178,6 +178,12 @@ main { position: absolute; inset: var(--top) 0 0 0; }
   font-weight: 700; font-size: .85rem; box-shadow: var(--shadow); transition: opacity .2s ease;
 }
 .m3d-label.dim { opacity: .55 !important; font-size: .75rem; }
+.m3d-label.floor { font-size: .8rem; padding: 2px 10px; border-width: 2px; background: color-mix(in srgb, var(--c) 12%, var(--panel)); }
+.m3d-label.floor.on { background: var(--c); color: #fff; }
+.m3d-label.floor.off { opacity: .5 !important; cursor: default; }
+@media (max-width: 760px) {
+  .m3d-label.floor { max-width: 62vw; overflow: hidden; text-overflow: ellipsis; padding: 4px 12px; }
+}
 .m3d-loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 10px; text-align: center; color: var(--ink); font-weight: 600; }
 .m3d-loading .bar { width: 220px; height: 6px; border-radius: 3px; background: rgba(0,0,0,.1); overflow: hidden; }
 .m3d-loading .bar i { display: block; height: 100%; background: var(--sea); transition: width .2s ease; }

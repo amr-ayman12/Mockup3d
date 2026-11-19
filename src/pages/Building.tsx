@@ -3,11 +3,12 @@ import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-r
 import DeepZoom from '../components/DeepZoom';
 import { floorLabel } from '../components/TopBar';
 import UnitList from '../components/UnitList';
-import { buildings, getBuilding, media, polyBounds, shotsForBuilding, shotsForPlan, shotSrc, spaceName, STATUS_COLOR, unitsForBuilding } from '../lib/data';
+import { availColor, buildings, getBuilding, media, polyBounds, shotsForBuilding, shotsForPlan, shotSrc, spaceName, STATUS_COLOR, unitsForBuilding, unitsForPlan } from '../lib/data';
 import { useI18n } from '../lib/i18n';
 import { withPanel } from '../lib/layout';
 
 const ModelView = lazy(() => import('../components/ModelView'));
+type FloorBand = import('../components/ModelView').FloorBand;
 
 export default function Building() {
   const { id } = useParams();
@@ -26,6 +27,18 @@ export default function Building() {
 
   const colors = Object.fromEntries(buildings.map((x) => [x.id, x.color]));
   const labels = Object.fromEntries(buildings.map((x) => [x.id, x.id === b.id ? tx(x.name) : x.id]));
+  // one clickable slab per storey: availability colour where the floor has units, building colour otherwise
+  const bands: FloorBand[] = b.floors.map((f) => {
+    const fu = unitsForPlan(f.plan);
+    const free = fu.filter((u) => u.status === 'available').length;
+    const name = floorLabel(f.id, lang);
+    return {
+      id: f.id,
+      enabled: !!f.plan,
+      color: fu.length ? availColor(fu) : b.color,
+      label: !f.plan ? `${name} · ${t('planPending')}` : fu.length ? `${name} · ${free}/${fu.length} ${t('availableOf')}` : `${name} · ${tx(f.use)}`,
+    };
+  });
 
   return (
     <div className="stage">
@@ -35,7 +48,8 @@ export default function Building() {
       </div>
       {view3d ? (
         <Suspense fallback={<div className="loading" />}>
-          <ModelView colors={colors} labels={labels} focus={b.id} dimOthers onPick={(x) => nav(`/master-plan/building/${x}`)} />
+          <ModelView colors={colors} labels={labels} focus={b.id} dimOthers floors={bands}
+                     onPick={(x) => nav(`/master-plan/building/${x}`)} onFloor={(f) => nav(`/master-plan/building/${b.id}/floor/${f}`)} />
         </Suspense>
       ) : (
         <DeepZoom dzi="/media/master/aerial.dzi" width={media.master.w} height={media.master.h} fit={fit}>
