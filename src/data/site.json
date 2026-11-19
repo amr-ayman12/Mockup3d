@@ -1,12 +1,14 @@
 {
   "_comment": "Project-wide settings. Every value marked placeholder must be replaced with the owner's real data.",
-  "name": { "en": "Seaside Resort (name placeholder)", "ar": "منتجع على البحر (اسم مؤقت)" },
+  "name": { "en": "Seaside Resort", "ar": "منتجع على البحر" },
+  "short": { "en": "SEASIDE", "ar": "منتجع" },
   "tagline": { "en": "Five buildings around a guitar-shaped pool, on a private beach.", "ar": "خمس مباني حوالين حمام سباحة على شكل جيتار، على شاطئ خاص." },
   "placeholder": true,
   "whatsapp": "",
   "email": "",
   "location": {
     "placeholder": true,
+    "city": { "en": "Ras Al Khaimah", "ar": "رأس الخيمة" },
     "label": { "en": "Al Marjan Island, Ras Al Khaimah, UAE (placeholder)", "ar": "جزيرة المرجان، رأس الخيمة، الإمارات (مؤقت)" },
     "lat": 25.68045,
     "lng": 55.74512

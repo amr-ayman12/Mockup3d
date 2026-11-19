@@ -4,6 +4,7 @@ import mediaJson from '../data/media.json';
 import siteJson from '../data/site.json';
 import spacesAr from '../data/spaces-ar.json';
 import unitsJson from '../data/units.json';
+import unitShapesJson from '../data/unit-shapes.json';
 
 export type Lang = 'ar' | 'en';
 export type Text = { en: string; ar: string };
@@ -83,6 +84,39 @@ export function availColor(list: Unit[]) {
 }
 export const formatPrice =(n: number, lang: Lang) =>
   new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en-US', { maximumFractionDigits: 0 }).format(n);
+
+// ---------- floors, unit outlines, breadcrumb ----------
+const ORD_EN = ['Ground', 'First', 'Second', 'Third', 'Fourth', 'Fifth'];
+const ORD_AR = ['الأرضي', 'الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس'];
+const floorIndex = (id: string) => (id === 'G' ? 0 : +id || 0);
+/** "Ground Floor" / "الدور الأرضي" */
+export const floorLabel = (id: string, lang: Lang) =>
+  lang === 'ar' ? `الدور ${ORD_AR[floorIndex(id)] ?? id}` : `${ORD_EN[floorIndex(id)] ?? id} Floor`;
+/** "GF", "1F" (the floor picker) */
+export const floorShort = (id: string, lang: Lang) => (id === 'G' ? (lang === 'ar' ? 'أرضي' : 'GF') : `${id}F`);
+
+const unitShapes = unitShapesJson as unknown as Record<string, Record<string, number[][]>>;
+/** outline of a unit on its floor's 3D plan (image pixels) */
+export const unitShape = (u: Unit) => unitShapes[u.plan]?.[u.id];
+export const polyCenter = (poly: number[][]) => [
+  poly.reduce((s, p) => s + p[0], 0) / poly.length,
+  poly.reduce((s, p) => s + p[1], 0) / poly.length,
+];
+
+export type Crumb = { label: string; to: string };
+/** the place trail shown in the top dropdown: location > project > building > floor > tour */
+export function crumbs(path: string, lang: Lang): Crumb[] {
+  const out: Crumb[] = [{ label: site.location.city[lang], to: '/' }, { label: site.name[lang], to: '/master-plan' }];
+  const m = path.match(/^\/master-plan\/building\/([^/]+)(?:\/floor\/([^/]+))?(?:\/tour\/([^/]+))?/);
+  const b = getBuilding(m?.[1]);
+  if (!b) return out;
+  out.push({ label: b.name[lang], to: `/master-plan/building/${b.id}` });
+  const f = getFloor(b, m?.[2]);
+  if (!f) return out;
+  out.push({ label: floorLabel(f.id, lang), to: `/master-plan/building/${b.id}/floor/${f.id}` });
+  if (m?.[3]) out.push({ label: lang === 'ar' ? 'جولة تفاعلية' : 'Interactive tour', to: path });
+  return out;
+}
 
 /** WhatsApp link with a pre-filled message, or null while the number is a placeholder. */
 export function whatsappLink(text: string) {

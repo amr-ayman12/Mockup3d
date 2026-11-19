@@ -1,23 +1,28 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import OpenSeadragon from 'openseadragon';
 import { useI18n } from '../lib/i18n';
+import { SideControls } from './Chrome';
 
 type Box = { x: number; y: number; w: number; h: number };
 type Props = {
   dzi: string;
   width: number;   // image pixel size, so the SVG overlay can use image coordinates
   height: number;
-  fit?: Box;       // initial view (image pixels); defaults to the whole image
+  fit?: Box;       // view to show (image pixels); changing it animates there
+  className?: string;
   children?: ReactNode; // SVG content drawn in image pixel coordinates
+  corner?: ReactNode;   // extra buttons above the fullscreen button
 };
 
 /** Deep-zoom image (OpenSeadragon) with an SVG overlay locked to the image while panning/zooming. */
-export default function DeepZoom({ dzi, width, height, fit, children }: Props) {
+export default function DeepZoom({ dzi, width, height, fit, className, children, corner }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const layer = useRef<HTMLDivElement>(null);
   const viewer = useRef<OpenSeadragon.Viewer | null>(null);
-  const { t, overlays } = useI18n();
-  const fitKey = fit ? `${fit.x},${fit.y},${fit.w},${fit.h}` : '';
+  const fitRef = useRef(fit);
+  fitRef.current = fit;
+  const { overlays } = useI18n();
+  const fitKey = fit ? `${Math.round(fit.x)},${Math.round(fit.y)},${Math.round(fit.w)},${Math.round(fit.h)}` : '';
 
   useEffect(() => {
     if (!host.current) return;
@@ -34,12 +39,12 @@ export default function DeepZoom({ dzi, width, height, fit, children }: Props) {
       element: host.current!,
       tileSources: dzi,
       showNavigationControl: false,
-      animationTime: 0.7,
-      springStiffness: 8,
+      animationTime: 1.0,
+      springStiffness: 6.5,
       blendTime: 0.2,
       visibilityRatio: 0.5,
-      minZoomImageRatio: 0.7,
-      maxZoomPixelRatio: 2.2,
+      minZoomImageRatio: 0.6,
+      maxZoomPixelRatio: 2.4,
       imageLoaderLimit: 6,
       gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true, scrollToZoom: true },
       gestureSettingsTouch: { pinchRotate: false, flickEnabled: true },
@@ -55,10 +60,13 @@ export default function DeepZoom({ dzi, width, height, fit, children }: Props) {
       el.style.transform = `translate3d(${tl.x}px, ${tl.y}px, 0)`;
       el.style.width = `${br.x - tl.x}px`;
       el.style.height = `${br.y - tl.y}px`;
+      // let overlay text keep a constant on-screen size
+      el.style.setProperty('--k', String(width / Math.max(1, br.x - tl.x)));
     };
     v.addHandler('open', () => {
       const item = v.world.getItemAt(0);
-      if (fit && item) v.viewport.fitBounds(item.imageToViewportRectangle(fit.x, fit.y, fit.w, fit.h), true);
+      const f = fitRef.current;
+      if (f && item) v.viewport.fitBounds(item.imageToViewportRectangle(f.x, f.y, f.w, f.h), true);
       sync();
     });
     v.addHandler('update-viewport', sync);
@@ -66,7 +74,7 @@ export default function DeepZoom({ dzi, width, height, fit, children }: Props) {
     return v;
   }
 
-  // smooth re-fit when the requested box changes (e.g. switching building)
+  // animate when the requested box changes (e.g. a unit was chosen)
   useEffect(() => {
     const v = viewer.current;
     const item = v?.world.getItemAt(0);
@@ -83,16 +91,12 @@ export default function DeepZoom({ dzi, width, height, fit, children }: Props) {
   };
 
   return (
-    <div className="dz">
+    <div className={`dz ${className ?? ''}`}>
       <div className="dz-osd" ref={host} />
-      <div className="dz-layer" ref={layer} style={{ opacity: overlays ? 1 : 0 }}>
+      <div className="dz-layer" ref={layer} style={{ opacity: overlays ? 1 : 0, pointerEvents: overlays ? undefined : 'none' }}>
         <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">{children}</svg>
       </div>
-      <div className="dz-ctrl">
-        <button aria-label={t('zoomIn')} title={t('zoomIn')} onClick={() => zoom(1.5)}>+</button>
-        <button aria-label={t('zoomOut')} title={t('zoomOut')} onClick={() => zoom(1 / 1.5)}>−</button>
-        <button aria-label={t('reset')} title={t('reset')} onClick={home}>⤢</button>
-      </div>
+      <SideControls onZoom={zoom} onReset={home}>{corner}</SideControls>
     </div>
   );
 }

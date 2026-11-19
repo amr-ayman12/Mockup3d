@@ -2,7 +2,7 @@
   "_comment": "Buildings and floors. 'poly' is the outline on the master-plan aerial (pixels of media/master/aerial, 1526x1030), traced by hand: replace with mask-derived polygons once the V-Ray master render exists. 'cropBox' is the building's extent inside the 2D plan crop (fractions x0,y0,x1,y1); it maps camera markers onto the 3D plan.",
   "buildings": [
     {
-      "id": "B1", "color": "#c98b4b",
+      "id": "B1", "color": "#d8b35b",
       "name": { "en": "B1 · Administration", "ar": "B1 · الإدارة" },
       "poly": [[447,243],[652,250],[650,308],[712,312],[690,350],[447,345]],
       "label": [548, 296],
@@ -12,7 +12,7 @@
       ]
     },
     {
-      "id": "B2", "color": "#2f7f86",
+      "id": "B2", "color": "#4fa3e3",
       "name": { "en": "B2 · Gym & Guest Rooms", "ar": "B2 · الجيم وغرف الضيوف" },
       "poly": [[298,340],[652,346],[648,432],[402,432],[380,566],[224,564]],
       "label": [430, 390],
@@ -23,7 +23,7 @@
       ]
     },
     {
-      "id": "B3", "color": "#5f8f5a",
+      "id": "B3", "color": "#86b964",
       "name": { "en": "B3 · Spa & Guest Rooms", "ar": "B3 · السبا وغرف الضيوف" },
       "poly": [[160,600],[225,567],[380,570],[590,612],[520,800],[390,830],[215,760],[155,690]],
       "label": [370, 690],
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "id": "B4", "color": "#9a6a3f",
+      "id": "B4", "color": "#7a7fc4",
       "name": { "en": "B4 · Lobby & Guest Rooms", "ar": "B4 · اللوبي وغرف الضيوف" },
       "poly": [[882,385],[1025,275],[1095,330],[1240,405],[1175,510],[1075,585],[1000,520],[905,445]],
       "label": [1060, 420],
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "id": "B5", "color": "#b5654a",
+      "id": "B5", "color": "#5cc0c9",
       "name": { "en": "B5 · Restaurant & Guest Rooms", "ar": "B5 · المطعم وغرف الضيوف" },
       "poly": [[1080,580],[1180,510],[1320,560],[1430,600],[1500,760],[1250,765],[1140,690]],
       "label": [1300, 650],
