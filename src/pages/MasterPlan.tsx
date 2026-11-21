@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DeepZoom from '../components/DeepZoom';
 import FilterSheet, { type ColorMode } from '../components/FilterSheet';
 import { ICube, IImage } from '../components/Icons';
-import { availColor, buildings, media, unitsForBuilding } from '../lib/data';
+import { availColor, buildings, labelPoint, ue, unitsForBuilding } from '../lib/data';
 import { useI18n } from '../lib/i18n';
 import { useUi } from '../lib/ui';
 
@@ -15,7 +15,8 @@ export default function MasterPlan() {
   const nav = useNavigate();
   const ui = useUi();
   const [mode, setMode] = useState<ColorMode>('type');
-  const [view3d, setView3d] = useState(true);
+  // the rendered aerial is the main view; the real-time model stays one tap away
+  const [view3d, setView3d] = useState(false);
   const [hover, setHover] = useState<string | null>(null);
   const open = (id: string) => nav(`/master-plan/building/${id}`);
 
@@ -40,16 +41,19 @@ export default function MasterPlan() {
           <ModelView colors={colors} labels={tags} onPick={open} />
         </Suspense>
       ) : (
-        <DeepZoom dzi="/media/master/aerial.dzi" width={media.master.w} height={media.master.h}
-                  fit={{ x: 0, y: 0, w: media.master.w, h: media.master.h }} className="dz-aerial">
+        <DeepZoom dzi="/media/ue/master/aerial.dzi" width={ue.master.w} height={ue.master.h}
+                  fit={{ x: 0, y: 0, w: ue.master.w, h: ue.master.h }} className="dz-aerial">
           {buildings.map((b) => {
             const [title, sub] = tags[b.id].split('\n');
+            const polys = ue.master.polys[b.id] ?? [];
+            if (!polys.length) return null;
+            const [lx, ly] = labelPoint(polys);
             return (
               <g key={b.id} className={`bld ${hover === b.id ? 'hover' : ''}`} style={{ ['--c' as string]: colors[b.id] }}
                  onMouseEnter={() => setHover(b.id)} onMouseLeave={() => setHover(null)} onClick={() => open(b.id)}
                  role="link" tabIndex={0} aria-label={title} onKeyDown={(e) => e.key === 'Enter' && open(b.id)}>
-                <polygon points={b.poly.map((p) => p.join(',')).join(' ')} />
-                <g className="svg-tag" style={{ transform: `translate(${b.label[0]}px, ${b.label[1]}px) scale(var(--k))` }}>
+                {polys.map((p, i) => <polygon key={i} points={p.map((q) => q.join(',')).join(' ')} />)}
+                <g className="svg-tag" style={{ transform: `translate(${lx}px, ${ly}px) scale(var(--k))` }}>
                   <line x1="0" y1="0" x2="0" y2="-18" />
                   <circle r="3" />
                   <rect x="-46" y="-56" width="92" height="38" rx="6" />

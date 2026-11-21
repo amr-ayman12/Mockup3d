@@ -1,7 +1,7 @@
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import DeepZoom from '../components/DeepZoom';
 import UnitCard from '../components/UnitCard';
-import { floorShort, getBuilding, getFloor, getUnit, markerPos, media, polyBounds, polyCenter, shotsForPlan, spaceName, STATUS_COLOR, unitShape, unitsForPlan } from '../lib/data';
+import { applyAffine, floorNum, floorShort, getBuilding, getFloor, getUnit, markerPos, media, polyBounds, polyCenter, shotsForPlan, spaceName, STATUS_COLOR, ueFloor, unitShape, unitsForPlan } from '../lib/data';
 import { useI18n } from '../lib/i18n';
 import { useUi } from '../lib/ui';
 
@@ -16,12 +16,18 @@ export default function Floor() {
   if (!b || !f || !f.plan) return <Navigate to={b ? `/master-plan/building/${b.id}` : '/master-plan'} replace />;
 
   const plan = f.plan;
-  const size = media.plans[plan];
-  const area = size.box;
+  // the plan composited on the Unreal site render when there is one, else the bare 3D plan
+  const comp = ueFloor(b, f);
+  const toImg = (pts: number[][]) => (comp ? applyAffine(comp.affine, pts) : pts);
+  const size = comp ? { w: comp.w, h: comp.h } : media.plans[plan];
+  const pb = media.plans[plan].box;
+  const area = polyBounds(toImg([[pb.x, pb.y], [pb.x + pb.w, pb.y], [pb.x + pb.w, pb.y + pb.h], [pb.x, pb.y + pb.h]]));
+  const dzi = comp ? `/media/ue/floors/${b.id}-${floorNum(f.id)}.dzi` : `/media/plans/${plan}.dzi`;
+  const shapeOf = (u: Parameters<typeof unitShape>[0]) => { const s = unitShape(u); return s && toImg(s); };
   const list = unitsForPlan(plan).filter((u) => unitShape(u));
   const shots = shotsForPlan(plan);
   const sel = getUnit(params.get('unit'));
-  const selShape = sel && sel.plan === plan ? unitShape(sel) : undefined;
+  const selShape = sel && sel.plan === plan ? shapeOf(sel) : undefined;
   const pick = (uid: string | null) => {
     const p = new URLSearchParams(params);
     if (uid) p.set('unit', uid); else p.delete('unit');
@@ -41,9 +47,9 @@ export default function Floor() {
 
   return (
     <div className="stage">
-      <DeepZoom key={plan} dzi={`/media/plans/${plan}.dzi`} width={size.w} height={size.h} fit={fit} className="dz-floor">
+      <DeepZoom key={dzi} dzi={dzi} width={size.w} height={size.h} fit={fit} className={comp ? 'dz-aerial' : 'dz-floor'}>
         {list.map((u) => {
-          const shape = unitShape(u)!;
+          const shape = shapeOf(u)!;
           const [cx, cy] = polyCenter(shape);
           return (
             <g key={u.id} className={`unit ${sel?.id === u.id ? 'on' : ''}`} style={{ ['--s' as string]: STATUS_COLOR[u.status] }}
@@ -58,7 +64,9 @@ export default function Floor() {
           );
         })}
         {shots.map((s) => {
-          const m = markerPos(s, f, '3d');
+          const m0 = markerPos(s, f, '3d');
+          const [[mx, my]] = toImg([[m0.x, m0.y]]);
+          const m = { x: mx, y: my };
           return (
             <g key={s.id} className="space-tag" style={{ transform: `translate(${m.x}px, ${m.y}px) scale(var(--k))` }}
                onClick={() => nav(tourUrl(s.id))} role="link" tabIndex={0} aria-label={spaceName(s, lang)}

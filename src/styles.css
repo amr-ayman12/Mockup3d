@@ -166,6 +166,7 @@ main { position: absolute; inset: 0 0 var(--bar) 0; overflow: hidden; }
 .bld { cursor: pointer; pointer-events: visiblePainted; }
 .bld polygon { fill: var(--c); fill-opacity: .45; stroke: rgba(255, 255, 255, .75); stroke-width: 1.5; transition: fill-opacity .2s ease; }
 .bld.hover polygon, .bld:hover polygon { fill-opacity: .68; }
+.bld.off { cursor: default; }
 .svg-tag { transform-box: view-box; }
 .svg-tag line { stroke: #fff; stroke-width: 1.4; }
 .svg-tag circle { fill: #fff; }
@@ -269,6 +270,7 @@ main { position: absolute; inset: 0 0 var(--bar) 0; overflow: hidden; }
 .poi i::after { content: ''; position: absolute; top: 3px; inset-inline-start: 7px; width: 34px; height: 1px; background: #fff; }
 .poi span { background: var(--green); color: var(--cream); border-radius: 3px 0 0 3px; padding: 1px 8px; font-size: .78rem; white-space: nowrap; translate: 0 -50%; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
 .poi em { font-style: normal; background: var(--green-2); color: var(--cream); border-radius: 0 3px 3px 0; padding: 1px 6px; font-size: .78rem; translate: 0 -50%; }
+.poi .eta { background: var(--cream); color: var(--green); font-weight: 700; border-radius: 10px; padding: 0 7px; margin-inline-start: 4px; font-size: .72rem; translate: 0 -50%; white-space: nowrap; }
 [dir='rtl'] .poi span { border-radius: 0 3px 3px 0; }
 [dir='rtl'] .poi em { border-radius: 3px 0 0 3px; }
 .project-pin { position: absolute; left: 0; top: 0; border: 0; background: none; padding: 0; pointer-events: auto; }

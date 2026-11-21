@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { SideControls } from '../components/Chrome';
 import { Mark } from '../components/Icons';
 import { site } from '../lib/data';
+import landmarksJson from '../data/landmarks.json';
 import { useI18n } from '../lib/i18n';
 
 // Satellite basemap (Esri World Imagery, XYZ tiles) shown through OpenSeadragon as one huge
@@ -20,7 +21,9 @@ const zoomBox = (p: { x: number; y: number }, z: number, cw: number, ch: number)
 };
 
 type Cat = 'landmarks' | 'education' | 'health' | 'transport';
-type Place = { id: string; cat: Cat; name: string; lat: number; lng: number };
+type Place = { id: string; cat: Cat; name: { en: string; ar: string }; lat: number; lng: number; minutes: number | null; km: number | null };
+// baked by scripts/make-landmarks.mjs (OpenStreetMap places + OSRM driving times), so the page needs no live lookup
+const places = landmarksJson.places as Place[];
 const CATS: { id: Cat | 'all'; en: string; ar: string; icon: string }[] = [
   { id: 'all', en: 'Show all', ar: 'الكل', icon: '◎' },
   { id: 'landmarks', en: 'Landmarks', ar: 'معالم', icon: '⌂' },
@@ -28,41 +31,6 @@ const CATS: { id: Cat | 'all'; en: string; ar: string; icon: string }[] = [
   { id: 'education', en: 'Education', ar: 'تعليم', icon: '✎' },
   { id: 'health', en: 'Health', ar: 'صحة', icon: '✚' },
 ];
-
-// nearby named places from OpenStreetMap (Overpass), so the map filter has real content
-async function nearby(lat: number, lng: number, lang: string): Promise<Place[]> {
-  const a = (r: number) => `(around:${r},${lat},${lng})`;
-  const q = `[out:json][timeout:20];(
-    nwr${a(14000)}["amenity"~"^(hospital|university|college)$"]["name"];
-    nwr${a(14000)}["tourism"~"^(attraction|museum|theme_park)$"]["name"];
-    nwr${a(14000)}["shop"="mall"]["name"];
-    nwr${a(45000)}["aeroway"="aerodrome"]["name"]["iata"];
-  );out center 80;`;
-  // public Overpass servers are often busy: try the main one, then mirrors
-  let r: Response | null = null;
-  for (const host of ['https://overpass-api.de', 'https://overpass.kumi.systems', 'https://overpass.private.coffee']) {
-    try {
-      r = await fetch(`${host}/api/interpreter`, { method: 'POST', body: 'data=' + encodeURIComponent(q), signal: AbortSignal.timeout(15000) });
-      if (r.ok) break;
-    } catch { r = null; }
-  }
-  if (!r?.ok) throw new Error('overpass');
-  const j = await r.json() as { elements: { id: number; lat?: number; lon?: number; center?: { lat: number; lon: number }; tags: Record<string, string> }[] };
-  const seen = new Set<string>();
-  const out: Place[] = [];
-  for (const e of j.elements) {
-    const t = e.tags;
-    const name = t[`name:${lang}`] || t['name:en'] || t.name;
-    const plat = e.lat ?? e.center?.lat, plng = e.lon ?? e.center?.lon;
-    if (!name || plat == null || plng == null || seen.has(name)) continue;
-    seen.add(name);
-    const cat: Cat = t.aeroway ? 'transport' : t.amenity === 'hospital' ? 'health' : t.amenity ? 'education' : 'landmarks';
-    out.push({ id: String(e.id), cat, name, lat: plat, lng: plng });
-  }
-  // keep the closest few of each kind so the map stays readable
-  const d = (p: Place) => (p.lat - lat) ** 2 + (p.lng - lng) ** 2;
-  return (['landmarks', 'transport', 'education', 'health'] as Cat[]).flatMap((c) => out.filter((p) => p.cat === c).sort((x, y) => d(x) - d(y)).slice(0, 4));
-}
 
 const WMO: [number, string, string][] = [
   [0, 'Clear sky', 'سما صافية'], [3, 'Partly cloudy', 'غيوم متفرقة'], [48, 'Fog', 'شبورة'], [67, 'Rain', 'مطر'],
@@ -101,7 +69,6 @@ export default function Location() {
   const pinRef = useRef<HTMLButtonElement>(null);
   const layer = useRef<HTMLDivElement>(null);
   const viewer = useRef<OpenSeadragon.Viewer | null>(null);
-  const [places, setPlaces] = useState<Place[]>([]);
   const [cat, setCat] = useState<Cat | 'all'>('all');
   const [leaving, setLeaving] = useState(false);
   const { lat, lng } = site.location;
@@ -154,12 +121,11 @@ export default function Location() {
       v.addHandler('update-viewport', place);
       v.addHandler('resize', place);
     }, 0);
-    nearby(lat, lng, lang).then(setPlaces).catch(() => setPlaces([]));
     return () => { window.clearTimeout(timer); v?.destroy(); viewer.current = null; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // after new places render, put them in place
-  useEffect(() => { viewer.current?.raiseEvent('update-viewport', {}); }, [places, cat]);
+  useEffect(() => { viewer.current?.raiseEvent('update-viewport', {}); }, [cat, lang]);
 
   const zoomTo = (z: number) => {
     const v = viewer.current, item = v?.world.getItemAt(0), el = host.current;
@@ -183,7 +149,8 @@ export default function Location() {
           const m = merc(p.lat, p.lng);
           return (
             <div key={p.id} className="poi" data-x={m.x} data-y={m.y}>
-              <i /><span>{p.name}</span><em>{CATS.find((c) => c.id === p.cat)?.icon}</em>
+              <i /><span>{tx(p.name)}</span><em>{CATS.find((c) => c.id === p.cat)?.icon}</em>
+              {p.minutes != null && <small className="eta" title={`${p.km} km`}>{p.minutes} {lang === 'ar' ? 'د' : 'min'}</small>}
             </div>
           );
         })}
@@ -206,7 +173,7 @@ export default function Location() {
       )}
       <Weather lat={lat} lng={lng} />
       <SideControls onZoom={(k) => viewer.current?.viewport.zoomBy(k).applyConstraints()} onReset={() => zoomTo(13)} />
-      <p className="map-credit">Imagery © Esri, Maxar · Places © OpenStreetMap contributors{site.location.placeholder ? ` · ${t('locPlaceholder')}` : ''}</p>
+      <p className="map-credit">Imagery © Esri, Maxar · Places © OpenStreetMap contributors · {lang === 'ar' ? 'أوقات السواقة: OSRM من غير زحمة' : 'Drive times: OSRM, no traffic'}{site.location.placeholder ? ` · ${t('locPlaceholder')}` : ''}</p>
     </div>
   );
 }

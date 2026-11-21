@@ -47,13 +47,14 @@ export default function FilterSheet({ mode, setMode, onClose }: { mode: ColorMod
   const nav = useNavigate();
   const [type, setType] = useState('');
   const [status, setStatus] = useState('');
+  const [view, setView] = useState('');
   const [area, setArea] = useState<[number, number]>([areaRange[0], areaRange[1]]);
   const [price, setPrice] = useState<[number, number]>([priceRange[0], priceRange[1]]);
   const [showing, setShowing] = useState(false);
   const [limit, setLimit] = useState(10);
   const hits = useMemo(() => units.filter((u) =>
-    (!type || u.type === type) && (!status || u.status === status) &&
-    u.area_m2 >= area[0] && u.area_m2 <= area[1] && u.price >= price[0] && u.price <= price[1]), [type, status, area, price]);
+    (!type || u.type === type) && (!status || u.status === status) && (!view || u.view === view) &&
+    u.area_m2 >= area[0] && u.area_m2 <= area[1] && u.price >= price[0] && u.price <= price[1]), [type, status, view, area, price]);
   const open = (u: Unit) => nav(`/master-plan/building/${u.building}/floor/${u.floor}?unit=${u.id}`);
 
   return (
@@ -88,6 +89,12 @@ export default function FilterSheet({ mode, setMode, onClose }: { mode: ColorMod
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="">{t('viewAll')}</option>
               {(['available', 'reserved', 'sold'] as const).map((x) => <option key={x} value={x}>{t(x)}</option>)}
+            </select>
+          </label>
+          <label>{t('view')}
+            <select value={view} onChange={(e) => setView(e.target.value)}>
+              <option value="">{t('viewAll')}</option>
+              {(['sea', 'pool', 'garden'] as const).map((x) => <option key={x} value={x}>{t(x)}</option>)}
             </select>
           </label>
           <div className="range-field"><span>{t('areaSqm')}</span>

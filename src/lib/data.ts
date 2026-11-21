@@ -5,6 +5,7 @@ import siteJson from '../data/site.json';
 import spacesAr from '../data/spaces-ar.json';
 import unitsJson from '../data/units.json';
 import unitShapesJson from '../data/unit-shapes.json';
+import ueJson from '../data/ue.json';
 
 export type Lang = 'ar' | 'en';
 export type Text = { en: string; ar: string };
@@ -102,6 +103,27 @@ export const polyCenter = (poly: number[][]) => [
   poly.reduce((s, p) => s + p[0], 0) / poly.length,
   poly.reduce((s, p) => s + p[1], 0) / poly.length,
 ];
+
+// ---------- Unreal renders (scripts/build-ue.mjs) ----------
+type Pts = number[][];
+type UeData = {
+  master: { w: number; h: number; polys: Record<string, Pts[]> };
+  facades: Record<string, { id: string; w: number; h: number; floors: Record<string, Pts[]> }[]>;
+  floors: Record<string, { w: number; h: number; plan: string; affine: number[][] }>;
+};
+export const ue = ueJson as unknown as UeData;
+/** the floor's index in the renders: G -> 0, 1 -> 1 ... */
+export const floorNum = (id: string) => floorIndex(id);
+/** Unreal floor composite for a building floor, if it exists and shows that floor's own plan */
+export function ueFloor(b: Building, f: Floor) {
+  const u = ue.floors[`${b.id}-${floorNum(f.id)}`];
+  return u && u.plan === f.plan ? u : undefined;
+}
+/** map points from 3D-plan pixels into the composite image */
+export const applyAffine = (m: number[][], pts: Pts) =>
+  pts.map(([x, y]) => [m[0][0] * x + m[0][1] * y + m[0][2], m[1][0] * x + m[1][1] * y + m[1][2]]);
+/** where to put a building's label on the aerial: centre of its largest part */
+export const labelPoint = (polys: Pts[]) => polyCenter(polys[0]);
 
 export type Crumb = { label: string; to: string };
 /** the place trail shown in the top dropdown: location > project > building > floor > tour */
